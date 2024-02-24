@@ -4,7 +4,7 @@ Donate link: - https://paypal.me/prasadkirpekar
 Tags: free,theme,meta,date,author, website, posts, pages, metadata, post, home page, remover, entry-meta, css,front page
 Requires at least: 3.0.1
 Tested up to: 6.4
-Stable tag: 2.3.1
+Stable tag: 2.3.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,8 @@ Use built in automatic installer or,
 4. Before activation
 
 == Changelog ==
+2.3.2
+Bug fix in visual remover
 2.3.1
 Improved security
 2.0.0
