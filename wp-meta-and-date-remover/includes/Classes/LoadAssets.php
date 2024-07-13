@@ -5,8 +5,8 @@ class LoadAssets
 {
     public function enqueueAssets()
     {
-        wp_enqueue_script('WPMDR-script-boot', WPMDR_URL . 'assets/js/start.js', array('jquery'), WPMDR_VERSION, false);
-        wp_enqueue_style('WPMDR-global-styling', WPMDR_URL . 'assets/css/start.css', array(), WPMDR_VERSION);
+            wp_enqueue_script('WPMDR-script-boot', WPMDR_URL . 'assets/js/start.js', array('jquery'), WPMDR_VERSION, false);
+            wp_enqueue_style('WPMDR-global-styling', WPMDR_URL . 'assets/css/start.css', array(), WPMDR_VERSION);
     }
 
     public function dashboardScripts($yoastDatePreviewRemove)

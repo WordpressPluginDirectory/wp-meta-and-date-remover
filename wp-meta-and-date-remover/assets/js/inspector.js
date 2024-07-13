@@ -129,6 +129,7 @@ var Inspector = ((props = {}) => {
 })
 
 window.classStack = []
+window.classNameMap = {}
 
 function processStack(){
   classStack.forEach(element => {
@@ -139,12 +140,22 @@ function processStack(){
   });
 }
 
+function pushToClassMap(classNames){
+  if(window.classNameMap[wpdata['object_id']]!=undefined){
+    window.classNameMap[wpdata['object_id']].push(classNames)
+  }
+  else window.classNameMap[wpdata['object_id']] = [classNames]
+  console.log(window.classNameMap)
+}
+
 var inspector = Inspector({
   onClick:(el)=>{
     console.log(el)
     const styleElement = document.createElement('style');
     var css = "."+Array.from(el.classList).join(".")+"{display:none!important}"
+    var classNames = Array.from(el.classList).join(".")
     styleElement.textContent = css;
+    pushToClassMap(classNames)
     window.classStack.push(styleElement)
     document.head.appendChild(styleElement)
     window.parent.postMessage("removed")
@@ -152,3 +163,4 @@ var inspector = Inspector({
 })
 
 window.inspector = inspector
+window.inpectorData = wpdata

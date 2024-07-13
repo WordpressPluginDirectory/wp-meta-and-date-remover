@@ -1,10 +1,10 @@
 === WP Meta and Date Remover ===
-Contributors: Prasad Kirpekar, freemius
+Contributors: prasadkirpekar
 Donate link: - https://paypal.me/prasadkirpekar
-Tags: free,theme,meta,date,author, website, posts, pages, metadata, post, home page, remover, entry-meta, css,front page
+Tags: date, author, remover, posts, metadata
 Requires at least: 3.0.1
-Tested up to: 6.4
-Stable tag: 2.3.2
+Tested up to: 6.6
+Stable tag: 2.3.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,8 @@ Use built in automatic installer or,
 4. Before activation
 
 == Changelog ==
+2.3.3
+Mutlipage support fix for visual remover
 2.3.2
 Bug fix in visual remover
 2.3.1

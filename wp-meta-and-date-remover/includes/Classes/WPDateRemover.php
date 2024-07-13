@@ -2,43 +2,46 @@
 
 namespace WPMDRMain\Classes;
 
-class WPDateRemover
-{
-    function __construct()
-    {
+class WPDateRemover {
+    function __construct() {
     }
-    
-    function additionalLinks( $links )
-    {
+
+    function additionalLinks( $links ) {
         $setting_link = '<a href="../wp-admin/options-general.php?page=wp-meta-and-date-remover.php">Settings</a>';
         array_unshift( $links, $setting_link );
         return $links;
     }
-    
-    function removeWithCSS()
-    {
+
+    function removeWithCSS() {
         $options = $this->getOptions();
         if ( $options['removeByCSS'] ) {
-            echo  "<style>/* CSS added by WP Meta and Date Remover*/" . $options['cssCode'] . "</style>" ;
+            echo "<style>/* CSS added by WP Meta and Date Remover*/" . $options['cssCode'] . "</style>";
         }
     }
-    
-    function applyVisualRemoverCode()
-    {
+
+    function applyVisualRemoverCode() {
         $options = $this->getOptions();
-        echo  "<style>/* Added by visual remover */" . $options['visualRemoverCSS'] . "</style>" ;
+        $classMap = $options['visualRemoverClassMap'];
+        foreach ( $classMap as $key => $value ) {
+            //if current post id is $key
+            $isHomePage = is_home() || is_front_page();
+            if ( $key == get_the_ID() || $isHomePage && $key == 0 ) {
+                foreach ( $value as $class ) {
+                    echo "<style>/* Added by visual remover */.{$class}{display:none!important;}</style>";
+                }
+            }
+        }
+        echo "<style>/* Added by visual remover */" . $options['visualRemoverCSS'] . "</style>";
     }
-    
-    function addOptionToPost()
-    {
-        global  $post ;
+
+    function addOptionToPost() {
+        global $post;
         $options = $this->getOptions();
         if ( !in_array( get_post_type( $post ), $this->getOptions()['targetPostTypes'] ) ) {
             return;
         }
         $value = get_post_meta( $post->ID, 'wpmdr_menu', true );
-        
-        if ( empty($value) ) {
+        if ( empty( $value ) ) {
             add_post_meta(
                 $post->ID,
                 'wpmdr_menu',
@@ -47,36 +50,29 @@ class WPDateRemover
             );
             $value = ( $options['individualPostDefault'] ? 1 : 0 );
         }
-        
         $checked = ( $value == 1 ? ' checked="checked"' : '' );
-        echo  '<div class="misc-pub-section"><label><input type="checkbox"' . $checked . ' value="1" name="wpmdr_menu_checkbox" /> Remove Meta and Date</label></div>' ;
+        echo '<div class="misc-pub-section"><label><input type="checkbox"' . $checked . ' value="1" name="wpmdr_menu_checkbox" /> Remove Meta and Date</label></div>';
     }
-    
-    function updateOptionToPost( $postid )
-    {
+
+    function updateOptionToPost( $postid ) {
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
             return;
         }
-        
         if ( isset( $_POST['wpmdr_menu_checkbox'] ) ) {
             update_post_meta( $postid, 'wpmdr_menu', 1 );
         } else {
             update_post_meta( $postid, 'wpmdr_menu', 0 );
         }
-    
     }
-    
-    function yoastSeoFilter()
-    {
+
+    function yoastSeoFilter() {
     }
-    
-    function yoastModifySchemaGraphPieces( $data )
-    {
+
+    function yoastModifySchemaGraphPieces( $data ) {
         return $data;
     }
-    
-    function resetFilter()
-    {
+
+    function resetFilter() {
         remove_filter( 'the_date', '__return_false' );
         remove_filter( 'the_time', '__return_false' );
         remove_filter( 'the_modified_date', '__return_false' );
@@ -87,11 +83,9 @@ class WPDateRemover
         remove_filter( 'get_the_author', '__return_false' );
         remove_filter( 'get_the_author_display_name', '__return_false' );
     }
-    
-    function removeWithPHP()
-    {
+
+    function removeWithPHP() {
         $options = $this->getOptions();
-        
         if ( $options['removeDate'] ) {
             add_filter( 'the_date', '__return_false' );
             add_filter( 'the_time', '__return_false' );
@@ -101,22 +95,17 @@ class WPDateRemover
             add_filter( 'get_the_time', '__return_false' );
             add_filter( 'get_the_modified_date', '__return_false' );
         }
-        
-        
         if ( $options['removeAuthor'] ) {
             add_filter( 'the_author', '__return_false' );
             add_filter( 'get_the_author', '__return_false' );
             add_filter( 'get_the_author_display_name', '__return_false' );
         }
-    
     }
-    
-    function addIndividualPostOptionCheckbox()
-    {
+
+    function addIndividualPostOptionCheckbox() {
     }
-    
-    function addIndividualPostOption( $postId )
-    {
+
+    function addIndividualPostOption( $postId ) {
         add_post_meta(
             $postId,
             'wpmdr_menu',
@@ -125,9 +114,8 @@ class WPDateRemover
         );
         $value = 1;
     }
-    
-    private function applyRemover( $type )
-    {
+
+    private function applyRemover( $type ) {
         $options = $this->getOptions();
         if ( $options['removeByCSS'] && $type === 'css' ) {
             $this->removeWithCSS();
@@ -136,25 +124,21 @@ class WPDateRemover
             $this->removeWithPHP();
         }
     }
-    
-    function removerFilter( $type )
-    {
+
+    function removerFilter( $type ) {
         $options = $this->getOptions();
         if ( (is_home() || is_front_page()) && $options['removeFromHome'] ) {
             $this->applyRemover( $type );
         }
-        global  $post ;
-        
+        global $post;
         if ( is_null( $post ) ) {
             $this->logDebug( "Invalid post to remove meta and date" );
             return;
         }
-        
         $this->applyRemover( $type );
     }
-    
-    function dashboardData()
-    {
+
+    function dashboardData() {
         $options = $this->getOptions();
         $data = array();
         $targetedPostCount = 0;
@@ -167,36 +151,32 @@ class WPDateRemover
             'post_type'      => 'post',
             'post_status'    => 'publish',
             'date_query'     => array(
-            'before' => date( 'Y-m-d', strtotime( '-3 years' ) ),
-        ),
+                'before' => date( 'Y-m-d', strtotime( '-3 years' ) ),
+            ),
             'fields'         => 'ids',
             'posts_per_page' => -1,
         );
-        $query = new \WP_Query( $args );
+        $query = new \WP_Query($args);
         $data['olderPostsCount'] = $query->post_count;
         wp_send_json_success( $data );
         wp_die();
     }
-    
-    function logDebug( $msg )
-    {
+
+    function logDebug( $msg ) {
         //echo $msg;
         if ( current_user_can( 'manage_options' ) && $this->getOptions()['showDebugLogs'] && !wpmdr_fs()->is_not_paying() ) {
-            echo  "<span style='padding:5px;background:black;color:#fff'>{$msg}(Debug mode in WP Meta and Date Remover)</span><br>" ;
+            echo "<span style='padding:5px;background:black;color:#fff'>{$msg}(Debug mode in WP Meta and Date Remover)</span><br>";
         }
     }
-    
-    public function updateSettings()
-    {
+
+    public function updateSettings() {
         if ( !isset( $_POST['nonce'] ) || !wp_verify_nonce( $_POST['nonce'], 'wpmdr_ajax_nonce' ) ) {
             wp_send_json_error( 'Invalid nonce' );
         }
-        
         if ( !current_user_can( 'manage_options' ) ) {
             wp_send_json_error();
             wp_die();
         }
-        
         $data = array();
         $data['removeByCSS'] = filter_var( $_REQUEST['settings']['removeByCSS'], FILTER_VALIDATE_BOOLEAN );
         $data['removeByPHP'] = filter_var( $_REQUEST['settings']['removeByPHP'], FILTER_VALIDATE_BOOLEAN );
@@ -221,9 +201,8 @@ class WPDateRemover
         wp_send_json_success( $data );
         wp_die();
     }
-    
-    function getDefaultOptions()
-    {
+
+    function getDefaultOptions() {
         $css = ".wp-block-post-author__name{display:none !important;}\n.wp-block-post-date{display:none !important;}\n .entry-meta {display:none !important;}\r\n\t.home .entry-meta { display: none; }\r\n\t.entry-footer {display:none !important;}\r\n\t.home .entry-footer { display: none; }";
         $default = array();
         $default['removeByCSS'] = get_option( 'wpmdr_disable_css', "0" ) == "0";
@@ -232,7 +211,7 @@ class WPDateRemover
         $default['cssCode'] = get_option( 'wpmdr_css', $css );
         $default['removeDate'] = get_option( 'wpmdr_remove_date', "1" ) == "1";
         $default['removeAuthor'] = get_option( 'wpmdr_remove_author', "1" ) == "1";
-        $default['targetPostTypes'] = get_option( 'wpmdr_included_post_types', [ 'post' ] );
+        $default['targetPostTypes'] = get_option( 'wpmdr_included_post_types', ['post'] );
         $default['targetPostAge'] = get_option( 'wpmdr_post_age', 0 );
         $default['targetBasedOnPostAge'] = get_option( 'wpmdr_post_age', "-1" ) != "-1";
         $default['individualPostDefault'] = get_option( 'wpmdr_individual_post_default', 1 );
@@ -247,31 +226,26 @@ class WPDateRemover
         $default['visualRemoverClassMap'] = array();
         return $default;
     }
-    
-    function getOptions()
-    {
+
+    function getOptions() {
         $data = get_option( 'wpmdr_settings' );
-        
         if ( !$data ) {
             $data = $this->getDefaultOptions();
             update_option( 'wpmdr_settings', $data );
         }
-        
         if ( !isset( $data["removeByPHPLegacy"] ) ) {
             $data["removeByPHPLegacy"] = false;
         }
         return $data;
     }
-    
-    function getSettings()
-    {
+
+    function getSettings() {
         $data = $this->getOptions();
         wp_send_json_success( $data );
         wp_die();
     }
-    
-    function loadOptions()
-    {
+
+    function loadOptions() {
         $categories = get_categories();
         $postTypes = array();
         foreach ( get_post_types( array(
