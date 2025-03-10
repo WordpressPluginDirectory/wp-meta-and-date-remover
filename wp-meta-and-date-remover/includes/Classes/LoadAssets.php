@@ -18,7 +18,7 @@ class LoadAssets
         wp_localize_script( 'WPMDR-yoast-date-preview-js', 'obj', [
             'upgradeUrl'      => wpmdr_fs()->get_upgrade_url(),
             'isPaying'        => !wpmdr_fs()->is_not_paying(),
-            'isYoastRemoveEnabled' => $yoastDatePreviewRemove,
+            'isYoastRemoveEnabled' => $yoastDatePreviewRemove
         ] );
     }
     
