@@ -2,18 +2,18 @@
 
 /**
  * Plugin Name: WP Meta and Date remover
- * Plugin URI: mailto:prasadkirpekar96@gmail.com
+ * Plugin URI: https://wordpress.org/plugins/wp-meta-and-date-remover/
  * Description: Remove meta and date information from posts and pages
  * Author: Prasad Kirpekar
- * Author URI: mailto:prasadkirpekar96@gmail.com
- * Version: 2.3.6
+ * Author URI: https://profiles.wordpress.org/prasadkirpekar/
+ * Version: 2.3.7
  */
 if ( !defined( 'ABSPATH' ) ) {
     exit;
 }
 define( 'WPMDR_URL', plugin_dir_url( __FILE__ ) );
 define( 'WPMDR_DIR', plugin_dir_path( __FILE__ ) );
-define( 'WPMDR_VERSION', '2.3.6' );
+define( 'WPMDR_VERSION', '2.3.7' );
 if ( function_exists( 'wpmdr_fs' ) ) {
     wpmdr_fs()->set_basename( false, __FILE__ );
 } else {
@@ -25,23 +25,24 @@ if ( function_exists( 'wpmdr_fs' ) ) {
                 // Include Freemius SDK.
                 require_once dirname( __FILE__ ) . '/freemius/start.php';
                 $wpmdr_fs = fs_dynamic_init( array(
-                    'id'              => '6753',
-                    'slug'            => 'wp-meta-and-date-remover',
-                    'type'            => 'plugin',
-                    'public_key'      => 'pk_6bc68a469d4ab171bcc3dc4717f42',
-                    'is_premium'      => false,
-                    'premium_suffix'  => 'Pro',
-                    'has_addons'      => false,
-                    'has_paid_plans'  => true,
-                    'has_affiliation' => 'selected',
-                    'menu'            => array(
+                    'id'               => '6753',
+                    'slug'             => 'wp-meta-and-date-remover',
+                    'type'             => 'plugin',
+                    'public_key'       => 'pk_6bc68a469d4ab171bcc3dc4717f42',
+                    'is_premium'       => false,
+                    'premium_suffix'   => 'Pro',
+                    'has_addons'       => false,
+                    'has_paid_plans'   => true,
+                    'has_affiliation'  => 'selected',
+                    'menu'             => array(
                         'slug'    => 'wp-meta-and-date-remover.php',
                         'support' => false,
                         'parent'  => array(
                             'slug' => 'options-general.php',
                         ),
                     ),
-                    'is_live'         => true,
+                    'is_live'          => true,
+                    'is_org_compliant' => true,
                 ) );
             }
             return $wpmdr_fs;
@@ -52,6 +53,10 @@ if ( function_exists( 'wpmdr_fs' ) ) {
         // Signal that SDK was initiated.
         do_action( 'wpmdr_fs_loaded' );
     }
+    function wpmdr_uninstall_cleanup() {
+    }
+
+    add_action( 'after_uninstall', 'wpmdr_uninstall_cleanup' );
     class WPMDRMain {
         public function boot() {
             $this->loadClasses();
@@ -63,45 +68,13 @@ if ( function_exists( 'wpmdr_fs' ) ) {
         }
 
         public function registerHooks() {
-            $wpmdr = new \WPMDRMain\Classes\WPDateRemover();
-            add_filter(
-                'script_loader_tag',
-                array($this, 'addModuleToScript'),
-                10,
-                3
-            );
-            $options = $wpmdr->getOptions();
-            if ( $options['individualPostOption'] ) {
-                add_action( 'add_meta_boxes', array($wpmdr, 'addIndividualPostOptionCheckbox') );
-                add_action( 'save_post', array($wpmdr, 'updateOptionToPost') );
-            }
-            add_action( 'wp_head', function () {
-                $wpmdr = new \WPMDRMain\Classes\WPDateRemover();
-                $wpmdr->removerFilter( 'css' );
-            }, 10 );
-            if ( $options["removeByPHPLegacy"] ) {
-                add_action( 'loop_start', function () {
-                    $wpmdr = new \WPMDRMain\Classes\WPDateRemover();
-                    $wpmdr->removerFilter( 'php' );
-                }, 10 );
-            } else {
-                if ( !is_admin() ) {
-                    add_action( 'the_post', function () {
-                        $wpmdr = new \WPMDRMain\Classes\WPDateRemover();
-                        $wpmdr->resetFilter();
-                        $wpmdr->removerFilter( 'php' );
-                    }, 10 );
-                }
-            }
-            add_filter( "plugin_action_links_" . plugin_basename( __FILE__ ), array($wpmdr, 'additionalLinks') );
+            $hookRegistrar = new \WPMDRMain\Classes\HookRegistrar();
+            $hookRegistrar->registerHooks( plugin_basename( __FILE__ ) );
         }
 
         public function registerAjax() {
-            $wpmdr = new \WPMDRMain\Classes\WPDateRemover();
-            add_action( 'wp_ajax_load_options', array($wpmdr, 'loadOptions') );
-            add_action( 'wp_ajax_get_settings', array($wpmdr, 'getSettings') );
-            add_action( 'wp_ajax_update_settings', array($wpmdr, 'updateSettings') );
-            add_action( 'wp_ajax_dashboard_data', array($wpmdr, 'dashboardData') );
+            $hookRegistrar = new \WPMDRMain\Classes\HookRegistrar();
+            $hookRegistrar->registerAjax();
         }
 
         public function loadClasses() {
@@ -173,7 +146,10 @@ if ( function_exists( 'wpmdr_fs' ) ) {
     }
 
     function enqueue_custom_script() {
-        // Enqueue the custom-script.js file
+        // Only load inspector.js for logged-in administrators
+        if ( !current_user_can( 'manage_options' ) ) {
+            return;
+        }
         wp_enqueue_script(
             'custom-script',
             WPMDR_URL . 'assets/js/inspector.js',
@@ -188,5 +164,11 @@ if ( function_exists( 'wpmdr_fs' ) ) {
     }
 
     add_action( 'wp_enqueue_scripts', 'enqueue_custom_script' );
+    // Register activation hook
+    register_activation_hook( __FILE__, array('\\WPMDRMain\\Classes\\Activator', 'activate') );
+    // Run migration/version checks early on all requests as an update fallback.
+    add_action( 'init', array('\\WPMDRMain\\Classes\\Activator', 'checkMigration'), 1 );
+    // Check for migration on admin_init (handles updates without reactivation)
+    add_action( 'admin_init', array('\\WPMDRMain\\Classes\\Activator', 'checkMigration') );
     ( new WPMDRMain() )->boot();
 }

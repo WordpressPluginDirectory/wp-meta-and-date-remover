@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!function_exists('WPSqzAutoload')) {
+if (!function_exists('WPMdrAutoload')) {
     /**
      * Plugin autoloader.
      *
@@ -22,7 +22,7 @@ if (!function_exists('WPSqzAutoload')) {
      *
      * @param $class
      */
-    function WPSqzAutoload($class)
+    function WPMdrAutoload($class)
     {
         // Do not load unless in plugin domain.
         $namespace = 'WPMDRMain';
@@ -44,5 +44,5 @@ if (!function_exists('WPSqzAutoload')) {
         }
     }
     // Register the autoloader.
-    spl_autoload_register('WPSqzAutoload');
+    spl_autoload_register('WPMdrAutoload');
 }

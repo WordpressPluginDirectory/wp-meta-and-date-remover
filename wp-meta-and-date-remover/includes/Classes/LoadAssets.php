@@ -5,7 +5,13 @@ class LoadAssets
 {
     public function enqueueAssets()
     {
-            wp_enqueue_script('WPMDR-script-boot', WPMDR_URL . 'assets/js/start.js', array('jquery'), WPMDR_VERSION, false);
+            wp_enqueue_script('WPMDR-script-boot', WPMDR_URL . 'assets/js/start.js', array('jquery'), WPMDR_VERSION, true);
+            add_filter('script_loader_tag', function($tag, $handle) {
+                if ($handle === 'WPMDR-script-boot') {
+                    return str_replace('<script ', '<script type="module" ', $tag);
+                }
+                return $tag;
+            }, 10, 2);
             wp_enqueue_style('WPMDR-global-styling', WPMDR_URL . 'assets/css/start.css', array(), WPMDR_VERSION);
     }
 

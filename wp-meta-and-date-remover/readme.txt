@@ -3,8 +3,8 @@ Contributors: prasadkirpekar
 Donate link: - https://paypal.me/prasadkirpekar
 Tags: date, author, remover, posts, metadata
 Requires at least: 3.0.1
-Tested up to: 6.7
-Stable tag: 2.3.6
+Tested up to: 7.0
+Stable tag: 2.3.7
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,8 +85,11 @@ Use built in automatic installer or,
 4. Before activation
 
 == Changelog ==
+2.3.7
+Security updates
 2.3.6
 Added support for Rank Math SEO
+Added Elementor support
 2.3.5
 Warning fix
 2.3.4
